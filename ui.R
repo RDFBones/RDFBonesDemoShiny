@@ -4,18 +4,25 @@ options(rgl.useNULL=TRUE)
 
 library(shiny)
 shinyUI(shinyUI(fluidPage(
-    
+   
     title=("Skeletal Inventories"),
-    h1("Skeletal Inventories"),
+    h1("Skeletal Inventories",align="center"),
     fluidRow(
         column(12, align="center",
                DT::dataTableOutput("mytable")
                ),
         hr(),
-        column(3,h4(""),plotOutput(outputId = "distPlot")),
-        column(3,h4(""),plotOutput(outputId = "distPlotMax")),
-        column(6,h4(""),plotOutput(outputId = "sexPlot"))
+        h2("Age Distribution",align="center"),
+        column(6,h4("",align="center"),plotOutput(outputId = "distPlot")), 
+        column(6,h4(""),plotOutput(outputId = "distPlotMax")),
+        br(),
+        h2("Sex Distribution",align="center"),
+        column(12,h4(""),plotOutput(outputId = "sexPlot")),
+        br(),
+        h2("Age Distribution by Sex",align="center"),
         
+        column(6,h4(""),plotOutput(outputId = "agebysexPlot")),
+        column(6,h4(""),plotOutput(outputId = "maxagebysexPlot"))
     )
 )
 ))
