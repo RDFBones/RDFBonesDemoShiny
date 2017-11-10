@@ -106,7 +106,6 @@ runQuery <- function() {
     return(list(mytable=mytable,sexraw=sexraw))
 }
 
-rownames(mytable) <- NULL
 shinyServer(function(input, output) {
     myresult <- runQuery()
     mytable <- myresult$mytable
