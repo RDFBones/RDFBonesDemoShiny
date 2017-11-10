@@ -38,7 +38,6 @@ PREFIX scires:   <http://vivoweb.org/ontology/scientific-research#>\n"
 
 
 runQuery <- function() {
-    prefix <- RDFBonesPrefix
     query <- "SELECT ?skeletalInventoryLabel  WHERE {
  ?skeletalInventory rdf:type rdfbones:PrimarySkeletalInventoryDryBone.
  ?skeletalInventory	rdfs:label	?skeletalInventoryLabel.
