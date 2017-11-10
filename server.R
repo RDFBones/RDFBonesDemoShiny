@@ -140,7 +140,7 @@ runQuery <- function() {
 }
 
 shinyServer(function(input, output) {
-    myresult <- runQuery()
+    withProgress(message = 'Running SPARQL query', value = 0, {myresult <- runQuery()})
     mytable <- myresult$mytable
     output$mytable = DT::renderDataTable({
         mytable
