@@ -72,11 +72,13 @@ PREFIX scires:   <http://vivoweb.org/ontology/scientific-research#>\n"
 
 
 runQuery <- function() {
-    query <- "SELECT ?skeletalInventoryLabel  WHERE {
- ?skeletalInventory rdf:type rdfbones:PrimarySkeletalInventoryDryBone.
- ?skeletalInventory	rdfs:label	?skeletalInventoryLabel.
- }"
+   
 
+    querySI <-  "SELECT DISTINCT ?SkeletalInventory ?SIlabel 
+                WHERE{
+                   ?SkeletalInventory a rdfbones:SkeletalInventory .
+                   ?SkeletalInventory rdfs:label ?SIlabel .
+                }"
 
     querysex<- "PREFIX rdfbones: <http://w3id.org/rdfbones/core#> 
                PREFIX frsexest: <http://w3id.org/rdfbones/extensions/FrSexEst#>
@@ -95,10 +97,10 @@ runQuery <- function() {
                ?myconc 	obo:OBI_0000293 ?specifiedisex .
                ?specifiedisex rdf:type frsexest:DegreeOfSexualization.
                ?specifiedisex obo:IAO_0000004 ?sex .
+               }"
 
-}"
-    queryage <-  "PREFIX rdfbones: <http://w3id.org/rdfbones/core#> 
-              PREFIX frageest: <http://w3id.org/rdfbones/extensions/FrAgeEst#>
+    queryage <- "PREFIX rdfbones: <http://w3id.org/rdfbones/core#> 
+               PREFIX frageest: <http://w3id.org/rdfbones/extensions/FrAgeEst#>
                PREFIX frsexest: <http://w3id.org/rdfbones/extensions/FrSexEst#>
                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -114,33 +116,51 @@ runQuery <- function() {
                ?specifiedimax obo:IAO_0000004 ?maxage .
                ?specifiedimin rdf:type frageest:MinAgeRange .
                ?specifiedimin obo:IAO_0000004 ?minage .
-     }"
+              }"
 
+    ## run queries
+    querySI <- paste(RDFBonesPrefixString,querySI)
+    mytableSI <- SPARQL(url="http://rdfbonesdemo.anthropologie.uni-freiburg.de:2020/ds/query",query=querySI,ns=RDFBonesPrefix)$results
     querysex <- paste(RDFBonesPrefixString,querysex)
     mytablesex <- SPARQL(url="http://rdfbonesdemo.anthropologie.uni-freiburg.de:2020/ds/query",query=querysex,ns=RDFBonesPrefix)$results
-    ## mytablesex
-
     queryage <- paste(RDFBonesPrefixString,queryage)
     mytableage <- SPARQL(url="http://rdfbonesdemo.anthropologie.uni-freiburg.de:2020/ds/query",query=queryage,ns=RDFBonesPrefix)$results
 
-
-    mytable <- data.frame(ID=(mytablesex[[1]]),sex=mytablesex[[2]])
-    sexraw <- mytable$sex
-    mytable$sex <- cut(mytable$sex,breaks=c(-Inf,-1.5,-0.5,0.5,1.5,Inf),labels=c("hypermasculine","masculine","indifferent","feminine","hyperfeminine"))
+    ## concatenate results
+    mytableSI$SIlabel <- gsub("@.*","",mytableSI$SIlabel)
+    mytableSI$SIlabel <- gsub("\"","",mytableSI$SIlabel)
+    mytable <- data.frame(ID=(mytableSI$SIlabel))
+    mytable$sex <- NA
+    for (i in 1:length(mytablesex[[1]])) {
+        tab <- grep(mytablesex[[1]][i],mytable$ID)
+        if (length(tab)) {
+            mytable$sex[tab] <- mytablesex$sex[i]
+            
+        }
+    }
     mytable$minage <- NA
     mytable$maxage <- NA
     for (i in 1:length(mytableage[[1]])) {
         tab <- grep(mytableage[[1]][i],mytable$ID)
         if (length(tab)) {
-            mytable$maxage[tab] <- mytableage$maxage[i]
-            mytable$minage[tab] <- mytableage$minage[i]
+            mytable$maxage[tab[1]] <- mytableage$maxage[i]
+            mytable$minage[tab[1]] <- mytableage$minage[i]
         }
     }
-    return(list(mytable=mytable,sexraw=sexraw))
+    ## sort table by ID
+    mytable <- mytable[order(mytable$ID),]
+    
+    ## format sexing from scores
+    sexraw <- mytable$sex
+    mytable$sex <- cut(mytable$sex,breaks=c(-Inf,-1.5,-0.5,0.5,1.5,Inf),labels=c("hypermasculine","masculine","indifferent","feminine","hyperfeminine"))
+    
+    return(list(mytable=mytable,sex=mytablesex,SI=mytableSI,age=mytableage,sexraw=sexraw))
 }
 
 shinyServer(function(input, output) {
-    withProgress(message = 'Running SPARQL query', value = 0, {myresult <- runQuery()})
+    withProgress(message = 'Running SPARQL query', value = 0, {
+        myresult <- runQuery()
+    })
     mytable <- myresult$mytable
     output$mytable = DT::renderDataTable({
         mytable
