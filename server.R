@@ -85,7 +85,7 @@ runQuery <- function() {
                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                PREFIX obo: <http://purl.obolibrary.org/obo/>
-               SELECT ?mylabel ?sex  WHERE {
+               SELECT DISTINCT ?mylabel ?sex WHERE {
                ?subject obo:BFO_0000051 ?myconc .
                ?myconc rdf:type ?mytype .
                ?subject rdfs:label ?mylabel .
@@ -93,7 +93,7 @@ runQuery <- function() {
                ##?myconc 	obo:OBI_0000299 ?specifiedo .
   	       ## ?specifiedo frsexest:HasText ?sex .
                ?myconc 	obo:OBI_0000293 ?specifiedisex .
-?specifiedisex rdf:type frsexest:DegreeOfSexualization.
+               ?specifiedisex rdf:type frsexest:DegreeOfSexualization.
                ?specifiedisex obo:IAO_0000004 ?sex .
 
 }"
@@ -103,8 +103,8 @@ runQuery <- function() {
                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
                PREFIX obo: <http://purl.obolibrary.org/obo/>
-               SELECT ?mylabel  ?minage ?maxage WHERE {
-               ?subject 	obo:BFO_0000051 ?myconc.
+               SELECT DISTINCT ?mylabel  ?minage ?maxage WHERE {
+               ?subject obo:BFO_0000051 ?myconc.
                ?myconc rdf:type ?mytype .
                ?subject rdfs:label ?mylabel .
                ?mytype rdfs:subClassOf obo:OBI_0000338 .
